@@ -5,14 +5,13 @@ hook.Add("KeyPress", "MidAirJump", function(ply, key)
         if true then -- Direction Jump
             local angle = ply:EyeAngles()
             local direction = angle:Forward() * 250
-            print(angle)
-            if angle.x < -10 then -- Go Up
-                ply:SetVelocity(ply:GetVelocity() + Vector(direction.x, direction.y, direction.z + 300))
-                print("Down")
-            else -- Go Down
-                ply:SetVelocity(ply:GetVelocity() + Vector(direction.x, direction.y, direction.z))
-                print("Up")
-            end
+
+            print("Angle X, Y: " .. angle.x .. ", " .. angle.y)
+            local plyvector = ply:GetVelocity()
+            print("plyvector X, Y, Z: " .. plyvector.x .. ", " .. plyvector.y .. ", " .. plyvector.z)
+
+            ply:SetVelocity(Vector(direction.x - plyvector.x,  direction.y - plyvector.y, direction.z - plyvector.z))
+            
             print("Direction Jump")
 
         else -- Air Jump
