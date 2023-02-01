@@ -3,14 +3,14 @@
 A simple Garry's Mod addon that lets you jump in the air.
 
 ## Features
-- Air Jump (Just normal Jump in the Air)
-- Direction Jump (Jump where you watch)
-  - Jump Forward
-  - Jump Fast Up (Watch in the Sky)
-  - Jump Fast Down (Watch on the Ground)
+- Air Jump
+- Jump Fast Up (Watch in the Sky)
+- Jump Fast Down (Watch on the Ground)
 
 ## Planned Features
-- Change Jump Mode Key
+- Jump in the Direction you are watching (Press W)
+- Speed Jump (Press Shift)
+- W A S D Jump
 - Sound File
 - Settings
   - Enable/Disable Skywalk
