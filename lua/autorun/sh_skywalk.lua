@@ -3,7 +3,10 @@ print("Skywalk...")
 local skywalk_speed = 600
 local skywalk_max_speed = 1000
 local allow_skywalk = true
+local allow_sound = true 
+local allow_particle = true
 local skywalk_sound_path = "addons/skywalk/sound/skywalk.wav"
+local ParticleEmitter = ParticleEmitter
 
 hook.Add("KeyPress", "MidAirJump", function(ply, key)
     if allow_skywalk then
@@ -56,7 +59,25 @@ hook.Add("KeyPress", "MidAirJump", function(ply, key)
                     ply:SetVelocity(Vector(0, 0, skywalk_speed))
                 end
             end
-            sound.Play(skywalk_sound_path, ply:GetPos(), 75, 100, 1)
+            
+            if allow_particle then
+                local emitter = ParticleEmitter(ply:GetPos())
+                for i = 1, 100 do
+                    local particle = emitter:Add("particle/smokesprites_0001", ply:GetPos())
+                    particle:SetVelocity(Vector(math.random(-50, 50), math.random(-50, 50), math.random(20, 100)))
+                    particle:SetDieTime(math.Rand(1, 2))
+                    particle:SetStartAlpha(math.Rand(150, 200))
+                    particle:SetEndAlpha(0)
+                    particle:SetStartSize(math.Rand(3, 5))
+                    particle:SetEndSize(math.Rand(10, 15))
+                    particle:SetRoll(math.Rand(0, 360))
+                    particle:SetRollDelta(math.Rand(-0.2, 0.2))
+                    particle:SetColor(255, 255, 255)
+                end
+            end
+            if allow_sound then
+                sound.Play(skywalk_sound_path, ply:GetPos(), 75, 100, 1)
+            end
         end
     end
 end)
