@@ -2,7 +2,8 @@ print("Skywalk...")
 
 local skywalk_speed = 600
 local skywalk_max_speed = 1000
-local allow_skywalk = true;
+local allow_skywalk = true
+local skywalk_sound_path = "addons/skywalk/sound/skywalk.wav"
 
 hook.Add("KeyPress", "MidAirJump", function(ply, key)
     if allow_skywalk then
@@ -55,6 +56,7 @@ hook.Add("KeyPress", "MidAirJump", function(ply, key)
                     ply:SetVelocity(Vector(0, 0, skywalk_speed))
                 end
             end
+            sound.Play(skywalk_sound_path, ply:GetPos(), 75, 100, 1)
         end
     end
 end)
