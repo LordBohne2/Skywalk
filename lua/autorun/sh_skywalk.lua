@@ -1,13 +1,12 @@
 print("Skywalk...")
 
 local skywalk_base_speed = 600
-local skywalk_max_speed = 1000
-local skywalk_sprint = 300
+local skywalk_max_speed = 3000
 local allow_skywalk = true
 local allow_sound = true 
-local allow_particle = false
-local skywalk_sound_path = "addons/skywalk/sound/skywalk.wav"
+local allow_particle = true
 local ParticleEmitter = ParticleEmitter
+local soundFile = "../sound/skywalk.wav"
 
 hook.Add("KeyPress", "MidAirJump", function(ply, key)
     -- Skywalk
@@ -15,12 +14,12 @@ hook.Add("KeyPress", "MidAirJump", function(ply, key)
         if key == IN_JUMP and ply:OnGround() == false then
 
             local skywalk_speed = skywalk_base_speed
-            local angle = ply:EyeAngles()
+            local angle = ply:EyeAngles() -- Get Player Angle
             local ply_Velocity = ply:GetVelocity() -- Get Player Velocity
             print("Angle X Y: " .. angle.x .. angle.y)
             print("Player Velocity X Y Z: " .. ply_Velocity.x .. ply_Velocity.y .. ply_Velocity.z)
 
-            -- Get Extra Speed
+            --[[ Get Extra Speed
             if ply:KeyDown(IN_SPEED) then
                 skywalk_speed = skywalk_speed + skywalk_sprint
 
@@ -33,9 +32,10 @@ hook.Add("KeyPress", "MidAirJump", function(ply, key)
                     return
                 end
             end
+            ]]
 
             -- Direction Jump / Forward
-            if ply:KeyDown(IN_FORWARD) then
+            if ply:KeyDown(IN_SPEED) then
                 local player_speed = math.sqrt(ply_Velocity.x^2 + ply_Velocity.y^2)
                 print("Player Speed: " .. player_speed)
 
@@ -84,7 +84,7 @@ hook.Add("KeyPress", "MidAirJump", function(ply, key)
 
             -- Sound
             if allow_sound then
-                sound.Play(skywalk_sound_path, ply:GetPos(), 75, 100, 1)
+                sound.Play(soundFile, ply:GetPos(), 75, 100, 1)
             end
         end
     end
