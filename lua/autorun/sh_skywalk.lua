@@ -5,40 +5,46 @@ local skywalk_max_speed = 3000
 local skywalk_base_jump_height = 300
 local allow_skywalk = true
 local allow_sound = true 
-local allow_particle = true
+local allow_particle = false
 local soundFile = "skywalk.wav"
 
--- Mid Air Movement
-function setVelocityForNormalAirJump(ply, ply_Velocity, skywalk_speed, angle)
-    local player_speed = math.sqrt(ply_Velocity.x^2 + ply_Velocity.y^2)
-    local speed = skywalk_speed + player_speed
+-- Get Player Speed
+local function getPlayerSpeed(ply, base_speed, limit)
+    local player_speed = math.sqrt(ply:GetVelocity().x^2 + ply:GetVelocity().y^2)
+    local skywalk_speed_adjust = base_speed + player_speed
 
     -- Limit Speed
-    if speed > skywalk_speed then
-        speed = skywalk_speed
+    if skywalk_speed_adjust > limit then
+        skywalk_speed_adjust = limit
     end
 
+    return skywalk_speed_adjust
+end
+
+-- Mid Air Movement
+function setVelocityForNormalAirJump(ply, skywalk_speed, angle)
+    local skywalk_speed_adjust = getPlayerSpeed(ply, skywalk_speed, 300)
     local direction
 
     if ply:KeyDown(IN_FORWARD) && ply:KeyDown(IN_MOVERIGHT) then -- W D
-        direction = ((angle:Forward() + angle:Right()) / 2) * speed
+        direction = ((angle:Forward() + angle:Right()) / 2) * skywalk_speed_adjust
     elseif ply:KeyDown(IN_MOVERIGHT) && ply:KeyDown(IN_BACK) then -- D S
-        direction = ((-angle:Forward() + angle:Right()) / 2) * speed
+        direction = ((-angle:Forward() + angle:Right()) / 2) * skywalk_speed_adjust
     elseif ply:KeyDown(IN_BACK) && ply:KeyDown(IN_MOVELEFT) then -- S A
-        direction = ((-angle:Forward() + -angle:Right()) / 2) * speed
+        direction = ((-angle:Forward() + -angle:Right()) / 2) * skywalk_speed_adjust
     elseif ply:KeyDown(IN_MOVELEFT) && ply:KeyDown(IN_FORWARD) then -- A W
-        direction = ((angle:Forward() + -angle:Right()) / 2) * speed
+        direction = ((angle:Forward() + -angle:Right()) / 2) * skywalk_speed_adjust
     elseif ply:KeyDown(IN_MOVELEFT) then -- A
-        direction = -angle:Right() * speed
+        direction = -angle:Right() * skywalk_speed_adjust
     elseif ply:KeyDown(IN_MOVERIGHT) then -- D
-        direction = angle:Right() * speed
+        direction = angle:Right() * skywalk_speed_adjust
     elseif ply:KeyDown(IN_BACK) then -- S
-        direction = -angle:Forward() * speed
+        direction = -angle:Forward() * skywalk_speed_adjust
     else return end
 
-    local x = direction.x - ply_Velocity.x
-    local y = direction.y - ply_Velocity.y
-    local z = ply_Velocity.z - (ply_Velocity.z * 2) + skywalk_base_jump_height
+    local x = direction.x - ply:GetVelocity().x
+    local y = direction.y - ply:GetVelocity().y
+    local z = ply:GetVelocity().z - (ply:GetVelocity().z * 2) + skywalk_base_jump_height
 
     ply:SetVelocity(Vector(x, y, z))
 end
@@ -80,32 +86,26 @@ hook.Add("KeyPress", "MidAirJump", function(ply, key)
 
             local skywalk_speed = skywalk_base_speed -- Get Base Speed
             local angle = ply:EyeAngles() -- Get Player Angle
-            local ply_Velocity = ply:GetVelocity() -- Get Player Velocity
 
-            if ply:KeyDown(IN_BACK) or ply:KeyDown(IN_MOVELEFT) or ply:KeyDown(IN_MOVERIGHT) then -- Mid Air Movement
-                setVelocityForNormalAirJump(ply, ply_Velocity, skywalk_speed, angle)
+            if ply:KeyDown(IN_DUCK) then -- Mid Air Jump
+                ply:SetVelocity(Vector(ply:GetVelocity().x - (ply:GetVelocity().x * 2), ply:GetVelocity().y - (ply:GetVelocity().y * 2), ply:GetVelocity().z - (ply:GetVelocity().z * 2) + skywalk_base_jump_height))
+
+            elseif ply:KeyDown(IN_BACK) or ply:KeyDown(IN_MOVELEFT) or ply:KeyDown(IN_MOVERIGHT) then -- Mid Air Movement
+                setVelocityForNormalAirJump(ply, skywalk_speed, angle)
 
             elseif ply:KeyDown(IN_SPEED) or ply:KeyDown(IN_FORWARD) then -- Direction Jump / Forward
                 local direction
 
                 if ply:KeyDown(IN_SPEED) then -- Speed Up
-                    local player_speed = math.sqrt(ply_Velocity.x^2 + ply_Velocity.y^2) -- Get Player Speed
-                    local skywalk_speed_adjust = skywalk_speed + player_speed
-
-                    -- Limit Speed
-                    if skywalk_speed_adjust > skywalk_max_speed then
-                        skywalk_speed_adjust = skywalk_max_speed
-                    end
-
-                    direction = angle:Forward() * skywalk_speed_adjust
+                    direction = angle:Forward() * getPlayerSpeed(ply, skywalk_speed, skywalk_max_speed)
 
                 else -- Normal Speed
                     direction = angle:Forward() * skywalk_speed
                 end
 
-                local x = direction.x - ply_Velocity.x
-                local y = direction.y - ply_Velocity.y
-                local z = direction.z - ply_Velocity.z
+                local x = direction.x - ply:GetVelocity().x
+                local y = direction.y - ply:GetVelocity().y
+                local z = direction.z - ply:GetVelocity().z
 
                 if angle.x < -80 then -- Fast Up
                     ply:SetVelocity(Vector(x, y, z + 1000))
