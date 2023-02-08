@@ -1,16 +1,16 @@
-print("Skywalk...")
-
+local soundFile = "skywalk.wav"
 skywalk_max_speed = 3000
 skywalk_max_jump_height = 3000
-local soundFile = "skywalk.wav"
 settingsFileName = "skywalk_settings.json"
 
+-- ConVar:
 ConVarAllowSkywalk = "sv_allow_skywalk"
 ConVarAllowSkywalkSound = "sv_allow_skywalk_sound"
 ConVarAllowSkywalkParticle = "sv_allow_skywalk_particle"
 ConVarSkywalkBaseSpeed = "sv_skywalk_base_speed"
 ConVarSkywalkBaseJumpHeight = "sv_skywalk_base_jump_height"
 
+-- Base Settings
 skywalkBaseData = {
     skywalk_base_speed = 600,
     skywalk_base_jump_height = 300,
@@ -105,7 +105,6 @@ end
 
 -- Skywalk
 hook.Add("KeyPress", "MidAirJump", function(ply, key)
-    -- Skywalk
     if GetConVar(ConVarAllowSkywalk):GetBool() then
         if key == IN_JUMP and ply:OnGround() == false then
 
@@ -154,17 +153,3 @@ hook.Add("KeyPress", "MidAirJump", function(ply, key)
         end
     end
 end)
-
-local function SaveSkywalkData()
-    local saveData = {
-        skywalk_base_speed = GetConVar(ConVarSkywalkBaseSpeed):GetFloat(),
-        skywalk_base_jump_height = GetConVar(ConVarSkywalkBaseJumpHeight):GetFloat(),
-        allow_skywalk = GetConVar(ConVarAllowSkywalk):GetBool(),
-        allow_sound = GetConVar(ConVarAllowSkywalkSound):GetBool(),
-        allow_particle = GetConVar(ConVarAllowSkywalkParticle):GetBool()
-    }
-
-    file.Write(settingsFileName, util.TableToJSON(saveData))
-
-    print("File Saved on " .. settingsFileName .. "...")
-end

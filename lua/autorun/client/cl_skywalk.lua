@@ -1,12 +1,11 @@
 include("autorun/sh_skywalk.lua")
 
-local function setConVar(newData)
+function setConVar(newData)
     -- Send the new values to the server
-    print("Client:", newData.allow_skywalk)
     RunConsoleCommand("skywalk_set_convar", newData.skywalk_base_speed, newData.skywalk_base_jump_height, tostring(newData.allow_skywalk), tostring(newData.allow_sound), tostring(newData.allow_particle))
 end
 
-local function ReadSkywalkData()
+function ReadSkywalkData()
     local readData
     if not file.Exists(settingsFileName, "DATA") then
         readData = skywalkBaseData
@@ -18,10 +17,19 @@ local function ReadSkywalkData()
     setConVar(readData)
 end
 
-ReadSkywalkData()
+local function SaveSkywalkData()
+    local saveData = {
+        skywalk_base_speed = GetConVar(ConVarSkywalkBaseSpeed):GetFloat(),
+        skywalk_base_jump_height = GetConVar(ConVarSkywalkBaseJumpHeight):GetFloat(),
+        allow_skywalk = GetConVar(ConVarAllowSkywalk):GetBool(),
+        allow_sound = GetConVar(ConVarAllowSkywalkSound):GetBool(),
+        allow_particle = GetConVar(ConVarAllowSkywalkParticle):GetBool()
+    }
+
+    file.Write(settingsFileName, util.TableToJSON(saveData))
+end
 
 local function ResetSkywalkData()
-    file.Write(settingsFileName, util.TableToJSON(skywalkBaseData))
     setConVar(skywalkBaseData)
 end
 
@@ -39,10 +47,23 @@ hook.Add("PopulateToolMenu", "SkywalkMenuSettings", function()
         panel:NumSlider("Base Jump Height", ConVarSkywalkBaseJumpHeight, 100, skywalk_max_jump_height, nil)
         panel:CheckBox("Enable Sound", ConVarAllowSkywalkSound)
         panel:CheckBox("Enable Particle", ConVarAllowSkywalkParticle)
+        local saveButton = panel:Button("Save Settings", nil, function() SaveSkywalkData() end)
+        saveButton.DoClick = function()
+            SaveSkywalkData()
+        end
+        local loadButton = panel:Button("Load Settings", nil, function() ReadSkywalkData() end)
+        loadButton.DoClick = function()
+            ReadSkywalkData()
+        end
         local resetButton = panel:Button("Reset", nil, function() ResetSkywalkData() end)
         resetButton.DoClick = function()
             ResetSkywalkData()
         end
         panel:Help("Controlls: ")
+        panel:Help("Forward: Jump in the Direction where you are watching")
+        panel:Help("Left & Right: Jump to Left or Right")
+        panel:Help("Back: Jump Backwards")
+        panel:Help("Shift: Jump Fast")
+        panel:Help("CTRL: Cancel Movement")
     end)
 end)
