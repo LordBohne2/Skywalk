@@ -1,17 +1,17 @@
 print("Skywalk...")
 
-local skywalk_max_speed = 3000
-local skywalk_max_jump_height = 3000
+skywalk_max_speed = 3000
+skywalk_max_jump_height = 3000
 local soundFile = "skywalk.wav"
-local settingsFileName = "skywalk_settings.json"
+settingsFileName = "skywalk_settings.json"
 
-local ConVarAllowSkywalk = "sv_allow_skywalk"
-local ConVarAllowSkywalkSound = "sv_allow_skywalk_sound"
-local ConVarAllowSkywalkParticle = "sv_allow_skywalk_particle"
-local ConVarSkywalkBaseSpeed = "sv_skywalk_base_speed"
-local ConVarSkywalkBaseJumpHeight = "sv_skywalk_base_jump_height"
+ConVarAllowSkywalk = "sv_allow_skywalk"
+ConVarAllowSkywalkSound = "sv_allow_skywalk_sound"
+ConVarAllowSkywalkParticle = "sv_allow_skywalk_particle"
+ConVarSkywalkBaseSpeed = "sv_skywalk_base_speed"
+ConVarSkywalkBaseJumpHeight = "sv_skywalk_base_jump_height"
 
-local skywalkBaseData = {
+skywalkBaseData = {
     skywalk_base_speed = 600,
     skywalk_base_jump_height = 300,
     allow_skywalk = true,
@@ -19,7 +19,7 @@ local skywalkBaseData = {
     allow_particle = true
 }
 
-local function boolToNum(bool)
+function boolToNum(bool)
     if bool == true then
         return 1
     else
@@ -155,18 +155,6 @@ hook.Add("KeyPress", "MidAirJump", function(ply, key)
     end
 end)
 
--- ConVar
-/*
-local function setConVar(newData)
-    --if (CLIENT) then return end
-    GetConVar(ConVarSkywalkBaseSpeed):SetFloat(newData.skywalk_base_speed)
-    GetConVar(ConVarSkywalkBaseJumpHeight):SetFloat(newData.skywalk_base_jump_height)
-    GetConVar(ConVarAllowSkywalk):SetBool(newData.allow_skywalk)
-    GetConVar(ConVarAllowSkywalkSound):SetBool(newData.allow_sound)
-    GetConVar(ConVarAllowSkywalkParticle):SetBool(newData.allow_particle)
-    print("ConVar Set!")
-end
-*/
 local function SaveSkywalkData()
     local saveData = {
         skywalk_base_speed = GetConVar(ConVarSkywalkBaseSpeed):GetFloat(),
@@ -180,45 +168,3 @@ local function SaveSkywalkData()
 
     print("File Saved on " .. settingsFileName .. "...")
 end
-
-local function ReadSkywalkData()
-    local readData
-    if not file.Exists(settingsFileName, "DATA") then
-        readData = skywalkBaseData
-        file.Write(settingsFileName, util.TableToJSON(readData))
-    else
-        readData = util.JSONToTable(file.Read(settingsFileName))
-    end
-
-    --setConVar(readData)
-end
-
-ReadSkywalkData()
-
-local function ResetSkywalkData()
-    local resetData = skywalkBaseData
-    file.Write(settingsFileName, util.TableToJSON(resetData))
-    --setConVar(resetData)
-end
-
--- Settings Tab
-hook.Add("AddToolMenuCategories", "SkywalkCategory", function()
-    spawnmenu.AddToolCategory("Options", "Skywalk" ,"#Skywalk")
-end)
-
--- GUI
-hook.Add("PopulateToolMenu", "SkywalkMenuSettings", function()
-    spawnmenu.AddToolMenuOption("Options", "Skywalk", "Skywalk_Settings", "#Skywalk Settings", "", "", function(panel)
-        panel:ClearControls()
-        panel:CheckBox("Enable", ConVarAllowSkywalk)
-        panel:NumSlider("Base Speed", ConVarSkywalkBaseSpeed, 100, skywalk_max_speed, nil)
-        panel:NumSlider("Base Jump Height", ConVarSkywalkBaseJumpHeight, 100, skywalk_max_jump_height, nil)
-        panel:CheckBox("Enable Sound", ConVarAllowSkywalkSound)
-        panel:CheckBox("Enable Particle", ConVarAllowSkywalkParticle)
-        local resetButton = panel:Button("Reset", nil, function() ResetSkywalkData() end)
-        resetButton.DoClick = function()
-            ResetSkywalkData()
-        end
-        panel:Help("Controlls: ")
-    end)
-end)
