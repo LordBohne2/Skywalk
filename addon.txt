@@ -1,0 +1,13 @@
+"AddonInfo"
+{
+	"title"		:	"Skywalk",
+    "version"	:   "1.0",
+	"type"		:	"effects",
+	"tags"		:	[ "fun", "cartoon" ],
+	"ignore"	:
+	[
+		"*.psd",
+		"*.vcproj",
+		"*.svn*"
+	]
+}
