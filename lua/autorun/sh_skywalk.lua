@@ -1,15 +1,15 @@
 print("Skywalk...")
 
 local skywalk_max_speed = 3000
+local skywalk_max_jump_height = 3000
 local soundFile = "skywalk.wav"
+local settingsFileName = "skywalk_settings.json"
 
-local skywalkData = {
-    skywalk_base_speed = 600,
-    skywalk_base_jump_height = 300,
-    allow_skywalk = true,
-    allow_sound = true ,
-    allow_particle = false
-}
+local ConVarAllowSkywalk = "sv_allow_skywalk"
+local ConVarAllowSkywalkSound = "sv_allow_skywalk_sound"
+local ConVarAllowSkywalkParticle = "sv_allow_skywalk_particle"
+local ConVarSkywalkBaseSpeed = "sv_skywalk_base_speed"
+local ConVarSkywalkBaseJumpHeight = "sv_skywalk_base_jump_height"
 
 local skywalkBaseData = {
     skywalk_base_speed = 600,
@@ -18,6 +18,20 @@ local skywalkBaseData = {
     allow_sound = true ,
     allow_particle = true
 }
+
+local function boolToNum(bool)
+    if bool == true then
+        return 1
+    else
+        return 0
+    end
+end
+
+CreateConVar(ConVarSkywalkBaseSpeed, skywalkBaseData.skywalk_base_speed, FCVAR_REPLICATED, "Set the Base Speed of Skywalk", 100, skywalk_max_speed)
+CreateConVar(ConVarSkywalkBaseJumpHeight, skywalkBaseData.skywalk_base_jump_height, FCVAR_REPLICATED, "Set the Base Jump Height of Skywalk", 100, skywalk_max_jump_height)
+CreateConVar(ConVarAllowSkywalk, boolToNum(skywalkBaseData.allow_skywalk), FCVAR_REPLICATED, "Enable or Disable Skywalk")
+CreateConVar(ConVarAllowSkywalkSound, boolToNum(skywalkBaseData.allow_sound), FCVAR_REPLICATED, "Enable or Disable Skywalk Sound")
+CreateConVar(ConVarAllowSkywalkParticle, boolToNum(skywalkBaseData.allow_particle), FCVAR_REPLICATED, "Enable or Disable Skywalk Particles")
 
 -- Get Player Speed
 local function getPlayerSpeed(ply, base_speed, limit)
@@ -55,21 +69,21 @@ function setVelocityForNormalAirJump(ply, skywalk_speed, angle)
 
     local x = direction.x - ply:GetVelocity().x
     local y = direction.y - ply:GetVelocity().y
-    local z = ply:GetVelocity().z - (ply:GetVelocity().z * 2) + skywalkData.skywalk_base_jump_height
+    local z = ply:GetVelocity().z - (ply:GetVelocity().z * 2) + GetConVar(ConVarSkywalkBaseJumpHeight):GetFloat()
 
     ply:SetVelocity(Vector(x, y, z))
 end
 
 -- Sound
 local function skywalkSound(ply)
-    if skywalkData.allow_sound then
+    if GetConVar(ConVarAllowSkywalkSound):GetBool() then
         sound.Play(soundFile, ply:GetPos(), 75, 100, 1)
     end
 end
 
 -- Particle
 local function skywalkParticle(ply)
-    if skywalkData.allow_particle then
+    if GetConVar(ConVarAllowSkywalkParticle):GetBool() && CLIENT then
         local emitter = ParticleEmitter(ply:GetPos())
         for i = 1, 25 do
             local particle = emitter:Add("particle/smokesprites_0001", ply:GetPos())
@@ -92,14 +106,14 @@ end
 -- Skywalk
 hook.Add("KeyPress", "MidAirJump", function(ply, key)
     -- Skywalk
-    if skywalkData.allow_skywalk then
+    if GetConVar(ConVarAllowSkywalk):GetBool() then
         if key == IN_JUMP and ply:OnGround() == false then
 
-            local skywalk_speed = skywalkData.skywalk_base_speed -- Get Base Speed
+            local skywalk_speed = GetConVar(ConVarSkywalkBaseSpeed):GetFloat() -- Get Base Speed
             local angle = ply:EyeAngles() -- Get Player Angle
 
             if ply:KeyDown(IN_DUCK) then -- Mid Air Jump
-                ply:SetVelocity(Vector(ply:GetVelocity().x - (ply:GetVelocity().x * 2), ply:GetVelocity().y - (ply:GetVelocity().y * 2), ply:GetVelocity().z - (ply:GetVelocity().z * 2) + skywalkData.skywalk_base_jump_height))
+                ply:SetVelocity(Vector(ply:GetVelocity().x - (ply:GetVelocity().x * 2), ply:GetVelocity().y - (ply:GetVelocity().y * 2), ply:GetVelocity().z - (ply:GetVelocity().z * 2) + GetConVar(ConVarSkywalkBaseJumpHeight):GetFloat()))
 
             elseif ply:KeyDown(IN_BACK) or ply:KeyDown(IN_MOVELEFT) or ply:KeyDown(IN_MOVERIGHT) then -- Mid Air Movement
                 setVelocityForNormalAirJump(ply, skywalk_speed, angle)
@@ -123,15 +137,15 @@ hook.Add("KeyPress", "MidAirJump", function(ply, key)
                 elseif angle.x > 80 then -- Fast Down
                     ply:SetVelocity(Vector(x, y, z - 500))
                 else -- Normal
-                    ply:SetVelocity(Vector(x, y, z + skywalkData.skywalk_base_jump_height))
+                    ply:SetVelocity(Vector(x, y, z + GetConVar(ConVarSkywalkBaseJumpHeight):GetFloat()))
                 end
 
             else -- Mid Air Jump
                 local fall = ply:GetVelocity()
                 if fall.z < 0 then
-                    ply:SetVelocity(Vector(0, 0, (fall.z - (fall.z * 2) + skywalkData.skywalk_base_jump_height)))
+                    ply:SetVelocity(Vector(0, 0, (fall.z - (fall.z * 2) + GetConVar(ConVarSkywalkBaseJumpHeight):GetFloat())))
                 else
-                    ply:SetVelocity(Vector(0, 0, skywalkData.skywalk_base_jump_height))
+                    ply:SetVelocity(Vector(0, 0, GetConVar(ConVarSkywalkBaseJumpHeight):GetFloat()))
                 end
             end
             
@@ -141,62 +155,70 @@ hook.Add("KeyPress", "MidAirJump", function(ply, key)
     end
 end)
 
--- Settings Tab
-hook.Add("AddToolMenuCategories", "CustomCategory", function()
-    spawnmenu.AddToolCategory("Options", "Skywalk" ,"#Skywalk")
-end)
-
-hook.Add("PopulateToolMenu", "CustomMenuSettings", function()
-    spawnmenu.AddToolMenuOption("Options", "Skywalk", "Skywalk_Settings", "#Skywalk Settings", "", "", function(panel)
-        panel:ClearControls()
-        panel:CheckBox("Enable", "sv_allow_skywalk")
-        panel:NumSlider("Base Speed", "sv_skywalk_base_speed", 100, skywalk_max_speed, nil)
-        panel:NumSlider("Base Jump Height", "sv_skywalk_base_jump_height", 100, 1000, nil)
-        panel:CheckBox("Enable Sound", "sv_allow_skywalk_sound")
-        panel:CheckBox("Enable Particle", "sv_allow_skywalk_particle")
-        panel:Button("Save", "sv_skywalk_save", SaveSkywalkData())
-        panel:Button("Reset", "sv_skywalk_reset", ResetSkywalkData())
-        panel:Help("Controlls: ")
-    end)
-end)
-
-local function setConVar(data)
-    GetConVar("sv_skywalk_base_speed"):SetFloat(data.skywalk_base_speed)
-    GetConVar("sv_skywalk_base_jump_height"):SetFloat(data.skywalk_base_jump_height)
-    GetConVar("sv_allow_skywalk"):SetBool(data.allow_skywalk)
-    GetConVar("sv_allow_skywalk_sound"):SetBool(data.allow_sound)
-    GetConVar("sv_allow_skywalk_particle"):SetBool(data.allow_particle)
+-- ConVar
+/*
+local function setConVar(newData)
+    --if (CLIENT) then return end
+    GetConVar(ConVarSkywalkBaseSpeed):SetFloat(newData.skywalk_base_speed)
+    GetConVar(ConVarSkywalkBaseJumpHeight):SetFloat(newData.skywalk_base_jump_height)
+    GetConVar(ConVarAllowSkywalk):SetBool(newData.allow_skywalk)
+    GetConVar(ConVarAllowSkywalkSound):SetBool(newData.allow_sound)
+    GetConVar(ConVarAllowSkywalkParticle):SetBool(newData.allow_particle)
+    print("ConVar Set!")
 end
-
+*/
 local function SaveSkywalkData()
-    local data = {
-        skywalk_base_speed = GetConVar("sv_skywalk_base_speed"):GetFloat(),
-        skywalk_base_jump_height = GetConVar("sv_skywalk_base_jump_height"):GetFloat(),
-        allow_skywalk = GetConVar("sv_allow_skywalk"):GetBool(),
-        allow_sound = GetConVar("sv_allow_skywalk_sound"):GetBool(),
-        allow_particle = GetConVar("sv_allow_skywalk_particle"):GetBool()
+    local saveData = {
+        skywalk_base_speed = GetConVar(ConVarSkywalkBaseSpeed):GetFloat(),
+        skywalk_base_jump_height = GetConVar(ConVarSkywalkBaseJumpHeight):GetFloat(),
+        allow_skywalk = GetConVar(ConVarAllowSkywalk):GetBool(),
+        allow_sound = GetConVar(ConVarAllowSkywalkSound):GetBool(),
+        allow_particle = GetConVar(ConVarAllowSkywalkParticle):GetBool()
     }
-    local converted = util.TableToJSON(data)
-    file.Write("skywalkdata.json", converted)
+
+    file.Write(settingsFileName, util.TableToJSON(saveData))
+
+    print("File Saved on " .. settingsFileName .. "...")
 end
 
 local function ReadSkywalkData()
-    local data
-    if not file.Exists("skywalkdata.json", "DATA") then
-        data = skywalkBaseData
-        local converted = util.TableToJSON(data)
-        file.Write("skywalkdata.json", converted)
+    local readData
+    if not file.Exists(settingsFileName, "DATA") then
+        readData = skywalkBaseData
+        file.Write(settingsFileName, util.TableToJSON(readData))
     else
-        local JSONData = file.Read("skywalkdata.json")
-        data = util.JSONToTable(JSONData)
+        readData = util.JSONToTable(file.Read(settingsFileName))
     end
 
-    setConVar(data)    
+    --setConVar(readData)
 end
 
 ReadSkywalkData()
 
 local function ResetSkywalkData()
-    local data = skywalkBaseData
-    file.Write("skywalkdata.json", util.TableToJSON(data))
+    local resetData = skywalkBaseData
+    file.Write(settingsFileName, util.TableToJSON(resetData))
+    --setConVar(resetData)
 end
+
+-- Settings Tab
+hook.Add("AddToolMenuCategories", "SkywalkCategory", function()
+    spawnmenu.AddToolCategory("Options", "Skywalk" ,"#Skywalk")
+end)
+
+-- GUI
+hook.Add("PopulateToolMenu", "SkywalkMenuSettings", function()
+    spawnmenu.AddToolMenuOption("Options", "Skywalk", "Skywalk_Settings", "#Skywalk Settings", "", "", function(panel)
+        panel:ClearControls()
+        panel:CheckBox("Enable", ConVarAllowSkywalk)
+        panel:NumSlider("Base Speed", ConVarSkywalkBaseSpeed, 100, skywalk_max_speed, nil)
+        panel:NumSlider("Base Jump Height", ConVarSkywalkBaseJumpHeight, 100, skywalk_max_jump_height, nil)
+        panel:CheckBox("Enable Sound", ConVarAllowSkywalkSound)
+        panel:CheckBox("Enable Particle", ConVarAllowSkywalkParticle)
+        local resetButton = panel:Button("Reset", nil, function() ResetSkywalkData() end)
+        resetButton.DoClick = function()
+            ResetSkywalkData()
+        end
+        panel:Help("Controlls: ")
+    end)
+end)
