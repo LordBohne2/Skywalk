@@ -1,5 +1,5 @@
 local soundFile = "skywalk.wav"
-skywalk_max_speed = 3000
+skywalk_max_speed = 2000
 skywalk_max_jump_height = 3000
 settingsFileName = "skywalk_settings.json"
 
@@ -19,19 +19,12 @@ skywalkBaseData = {
     allow_particle = true
 }
 
-function boolToNum(bool)
-    if bool == true then
-        return 1
-    else
-        return 0
-    end
-end
-
-CreateConVar(ConVarSkywalkBaseSpeed, skywalkBaseData.skywalk_base_speed, FCVAR_REPLICATED, "Set the Base Speed of Skywalk", 100, skywalk_max_speed)
-CreateConVar(ConVarSkywalkBaseJumpHeight, skywalkBaseData.skywalk_base_jump_height, FCVAR_REPLICATED, "Set the Base Jump Height of Skywalk", 100, skywalk_max_jump_height)
-CreateConVar(ConVarAllowSkywalk, boolToNum(skywalkBaseData.allow_skywalk), FCVAR_REPLICATED, "Enable or Disable Skywalk")
-CreateConVar(ConVarAllowSkywalkSound, boolToNum(skywalkBaseData.allow_sound), FCVAR_REPLICATED, "Enable or Disable Skywalk Sound")
-CreateConVar(ConVarAllowSkywalkParticle, boolToNum(skywalkBaseData.allow_particle), FCVAR_REPLICATED, "Enable or Disable Skywalk Particles")
+-- Create ConVar
+CreateConVar(ConVarSkywalkBaseSpeed, skywalkBaseData.skywalk_base_speed, FCVAR_ARCHIVE, "Set the Base Speed of Skywalk", 100, skywalk_max_speed)
+CreateConVar(ConVarSkywalkBaseJumpHeight, skywalkBaseData.skywalk_base_jump_height, FCVAR_ARCHIVE, "Set the Base Jump Height of Skywalk", 100, skywalk_max_jump_height)
+CreateConVar(ConVarAllowSkywalk, tostring(skywalkBaseData.allow_skywalk), FCVAR_ARCHIVE, "Enable or Disable Skywalk")
+CreateConVar(ConVarAllowSkywalkSound, tostring(skywalkBaseData.allow_sound), FCVAR_ARCHIVE, "Enable or Disable Skywalk Sound")
+CreateConVar(ConVarAllowSkywalkParticle, tostring(skywalkBaseData.allow_particle), FCVAR_ARCHIVE, "Enable or Disable Skywalk Particles")
 
 -- Get Player Speed
 local function getPlayerSpeed(ply, base_speed, limit)
@@ -47,7 +40,7 @@ local function getPlayerSpeed(ply, base_speed, limit)
 end
 
 -- Mid Air Movement
-function setVelocityForNormalAirJump(ply, skywalk_speed, angle)
+local function setVelocityForNormalAirJump(ply, skywalk_speed, angle)
     local skywalk_speed_adjust = getPlayerSpeed(ply, skywalk_speed, 300)
     local direction
 
@@ -109,10 +102,11 @@ hook.Add("KeyPress", "MidAirJump", function(ply, key)
         if key == IN_JUMP and ply:OnGround() == false then
 
             local skywalk_speed = GetConVar(ConVarSkywalkBaseSpeed):GetFloat() -- Get Base Speed
+            local skywalk_jump_height = GetConVar(ConVarSkywalkBaseJumpHeight):GetFloat() -- Get Base Jump Height
             local angle = ply:EyeAngles() -- Get Player Angle
 
             if ply:KeyDown(IN_DUCK) then -- Mid Air Jump
-                ply:SetVelocity(Vector(ply:GetVelocity().x - (ply:GetVelocity().x * 2), ply:GetVelocity().y - (ply:GetVelocity().y * 2), ply:GetVelocity().z - (ply:GetVelocity().z * 2) + GetConVar(ConVarSkywalkBaseJumpHeight):GetFloat()))
+                ply:SetVelocity(Vector(ply:GetVelocity().x - (ply:GetVelocity().x * 2), ply:GetVelocity().y - (ply:GetVelocity().y * 2), ply:GetVelocity().z - (ply:GetVelocity().z * 2) + skywalk_jump_height))
 
             elseif ply:KeyDown(IN_BACK) or ply:KeyDown(IN_MOVELEFT) or ply:KeyDown(IN_MOVERIGHT) then -- Mid Air Movement
                 setVelocityForNormalAirJump(ply, skywalk_speed, angle)
@@ -122,7 +116,6 @@ hook.Add("KeyPress", "MidAirJump", function(ply, key)
 
                 if ply:KeyDown(IN_SPEED) then -- Speed Up
                     direction = angle:Forward() * getPlayerSpeed(ply, skywalk_speed, skywalk_max_speed)
-
                 else -- Normal Speed
                     direction = angle:Forward() * skywalk_speed
                 end
@@ -134,17 +127,21 @@ hook.Add("KeyPress", "MidAirJump", function(ply, key)
                 if angle.x < -80 then -- Fast Up
                     ply:SetVelocity(Vector(x, y, z + 1000))
                 elseif angle.x > 80 then -- Fast Down
-                    ply:SetVelocity(Vector(x, y, z - 500))
+                    z = ply:GetVelocity().z
+                    if z >= 0 then
+                        z = z - (z * 2)
+                    end
+                    ply:SetVelocity(Vector(x, y, z - 100))
                 else -- Normal
-                    ply:SetVelocity(Vector(x, y, z + GetConVar(ConVarSkywalkBaseJumpHeight):GetFloat()))
+                    ply:SetVelocity(Vector(x, y, z + skywalk_jump_height))
                 end
 
             else -- Mid Air Jump
                 local fall = ply:GetVelocity()
                 if fall.z < 0 then
-                    ply:SetVelocity(Vector(0, 0, (fall.z - (fall.z * 2) + GetConVar(ConVarSkywalkBaseJumpHeight):GetFloat())))
+                    ply:SetVelocity(Vector(0, 0, (fall.z - (fall.z * 2) + skywalk_jump_height)))
                 else
-                    ply:SetVelocity(Vector(0, 0, GetConVar(ConVarSkywalkBaseJumpHeight):GetFloat()))
+                    ply:SetVelocity(Vector(0, 0, skywalk_jump_height))
                 end
             end
             

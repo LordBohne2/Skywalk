@@ -14,12 +14,12 @@ concommand.Add("skywalk_set_convar", function(ply, cmd, args)
         local newAllowSkywalk = args[3]
         local newAllowSound = args[4]
         local newAllowParticle = args[5]
-
+        
         -- Set the values for each ConVar
         GetConVar(ConVarSkywalkBaseSpeed):SetFloat(newSpeed)
         GetConVar(ConVarSkywalkBaseJumpHeight):SetFloat(newJumpHeight)
-        GetConVar(ConVarAllowSkywalk):SetBool(newAllowSkywalk)
-        GetConVar(ConVarAllowSkywalkSound):SetBool(newAllowSound)
-        GetConVar(ConVarAllowSkywalkParticle):SetBool(newAllowParticle)
+        GetConVar(ConVarAllowSkywalk):SetBool(tobool(newAllowSkywalk))
+        GetConVar(ConVarAllowSkywalkSound):SetBool(tobool(newAllowSound))
+        GetConVar(ConVarAllowSkywalkParticle):SetBool(tobool(newAllowParticle))
     end
 end)

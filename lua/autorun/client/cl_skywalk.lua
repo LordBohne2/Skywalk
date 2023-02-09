@@ -1,11 +1,11 @@
 include("autorun/sh_skywalk.lua")
 
-function setConVar(newData)
-    -- Send the new values to the server
+local function setConVar(newData)
+    -- Send the new values to the server   
     RunConsoleCommand("skywalk_set_convar", newData.skywalk_base_speed, newData.skywalk_base_jump_height, tostring(newData.allow_skywalk), tostring(newData.allow_sound), tostring(newData.allow_particle))
 end
 
-function ReadSkywalkData()
+local function ReadSkywalkData()
     local readData
     if not file.Exists(settingsFileName, "DATA") then
         readData = skywalkBaseData
@@ -33,12 +33,11 @@ local function ResetSkywalkData()
     setConVar(skywalkBaseData)
 end
 
--- Settings Tab
+-- GUI
 hook.Add("AddToolMenuCategories", "SkywalkCategory", function()
     spawnmenu.AddToolCategory("Options", "Skywalk" ,"#Skywalk")
 end)
 
--- GUI
 hook.Add("PopulateToolMenu", "SkywalkMenuSettings", function()
     spawnmenu.AddToolMenuOption("Options", "Skywalk", "Skywalk_Settings", "#Skywalk Settings", "", "", function(panel)
         panel:ClearControls()
@@ -55,7 +54,7 @@ hook.Add("PopulateToolMenu", "SkywalkMenuSettings", function()
         loadButton.DoClick = function()
             ReadSkywalkData()
         end
-        local resetButton = panel:Button("Reset", nil, function() ResetSkywalkData() end)
+        local resetButton = panel:Button("Reset Settings", nil, function() ResetSkywalkData() end)
         resetButton.DoClick = function()
             ResetSkywalkData()
         end
