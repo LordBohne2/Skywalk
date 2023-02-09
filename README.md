@@ -11,11 +11,11 @@ A simple Garry's Mod addon that lets you jump in the air.
 - Jump Fast Up (Watch in the Sky)
 - Jump Fast Down (Watch on the Ground)
 - Sound File
-
-## Planned Features
-- Avoid Spamming
 - Settings
   - Enable/Disable Skywalk
   - Enable/Disable Sound
   - Enable/Disable Particle
   - Change Base Speed
+
+## Planned Features
+- Avoid Spamming
